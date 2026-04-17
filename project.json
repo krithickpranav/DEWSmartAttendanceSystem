@@ -1,0 +1,27 @@
+{
+  "overview": "Smart Attendance Management System with multi-company support (Deepam Engineering Works and Deepam Traders). Features face recognition for worker login, geo-restriction, attendance tracking with delay/early leave/overtime calculations, AI assistant, PDF reports, and now real-time multi-device sync backed by the Internet Computer canister.",
+  "features": [
+    "Multi-company login with separate databases",
+    "Worker biometric face recognition enrollment and login",
+    "Geo-restriction — camera only activates within company range",
+    "Attendance tracking with delay, early leave, and overtime calculations",
+    "Real-time multi-device sync via backend canister (5s polling)",
+    "Company location persisted to backend — works in mobile APK",
+    "Manager keyword+PIN login",
+    "PDF attendance reports (weekly, monthly, yearly, per-worker)",
+    "Offline AI assistant for attendance queries",
+    "Company timing settings (start/end time, grace period)"
+  ],
+  "category": "business-tools",
+  "tags": [
+    "attendance",
+    "face-recognition",
+    "multi-company",
+    "offline",
+    "real-time-sync",
+    "mobile",
+    "hr",
+    "biometric"
+  ],
+  "last_updated": "2026-04-17T11:54:07.690Z"
+}

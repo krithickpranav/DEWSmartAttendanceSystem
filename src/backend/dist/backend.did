@@ -1,0 +1,94 @@
+type Worker = 
+ record {
+   companyId: text;
+   department: text;
+   enrolledAt: int;
+   faceEmbeddings: blob;
+   id: text;
+   name: text;
+   phone: text;
+ };
+type PermissionRequest = 
+ record {
+   companyId: text;
+   createdAt: int;
+   hours: float64;
+   id: text;
+   reason: text;
+   status: text;
+   workerId: text;
+ };
+type ManagerCredentials = 
+ record {
+   companyId: text;
+   keywordHash: text;
+   pinHash: text;
+   updatedAt: int;
+ };
+type CompanyTiming = 
+ record {
+   companyId: text;
+   endTime: text;
+   gracePeriodMinutes: nat;
+   id: text;
+   startTime: text;
+   updatedAt: int;
+ };
+type CompanySettings = 
+ record {
+   companyId: text;
+   latitude: float64;
+   longitude: float64;
+   radius: float64;
+   updatedAt: int;
+   wifiSsid: opt text;
+ };
+type AttendanceRecord = 
+ record {
+   checkIn: int;
+   checkOut: opt int;
+   companyId: text;
+   date: text;
+   delayMinutes: opt nat;
+   earlyLeaveMinutes: opt nat;
+   id: text;
+   overtimeMinutes: opt nat;
+   status: text;
+   totalHours: opt float64;
+   workerId: text;
+ };
+service : {
+  addWorker: (companyId: text, id: text, name: text, department: text, phone:
+   text, embeddings: blob) -> ();
+  checkIn: (companyId: text, workerId: text, date: text, delayMinutes:
+   opt nat) -> ();
+  checkOut: (companyId: text, workerId: text, date: text, earlyLeaveMinutes:
+   opt nat, overtimeMinutes: opt nat) -> ();
+  deleteWorker: (companyId: text, id: text) -> ();
+  getAllAttendance: (companyId: text) -> (vec AttendanceRecord) query;
+  getAllPermissions: (companyId: text) -> (vec PermissionRequest) query;
+  getAttendance: (companyId: text, workerId: text, date: text) ->
+   (opt AttendanceRecord) query;
+  getAttendanceByWorker: (companyId: text, workerId: text) ->
+   (vec AttendanceRecord) query;
+  getCompanySettings: (companyId: text) -> (opt CompanySettings) query;
+  getCompanyTiming: (companyId: text) -> (opt CompanyTiming) query;
+  getManagerCredentials: (companyId: text) -> (opt ManagerCredentials) query;
+  getPermissionRequests: (companyId: text, workerId: text) ->
+   (vec PermissionRequest) query;
+  getSyncVersion: (companyId: text) -> (nat) query;
+  getWorker: (companyId: text, id: text) -> (Worker) query;
+  listWorkers: (companyId: text) -> (vec Worker) query;
+  requestPermission: (companyId: text, workerId: text, reason: text, hours:
+   float64) -> ();
+  setCompanySettings: (companyId: text, latitude: float64, longitude:
+   float64, radius: float64, wifiSsid: opt text) -> ();
+  setCompanyTiming: (companyId: text, startTime: text, endTime: text,
+   gracePeriodMinutes: nat) -> ();
+  setManagerCredentials: (companyId: text, keywordHash: text, pinHash:
+   text) -> ();
+  updatePermissionStatus: (companyId: text, permissionId: text, newStatus:
+   text) -> ();
+  updateWorker: (companyId: text, id: text, name: text, department: text,
+   phone: text) -> ();
+}
