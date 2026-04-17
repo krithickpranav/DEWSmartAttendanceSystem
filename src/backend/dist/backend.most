@@ -1,4 +1,4 @@
-// Version: 3.0.0
+// Version: 1.0.0
 type AttendanceRecord__699091857 =
   {
     checkIn : Int;
@@ -38,52 +38,10 @@ type Internal__8484328<K, V> =
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
 type ManagerCredentials__361562549 =
   {companyId : Text; keywordHash : Text; pinHash : Text; updatedAt : Int};
-type Map__158565046<K, V> = Map__297112838<K, V>;
-type Map__297112838<K, V> =
-  {var root : Node__46230540<K, V>; var size : Nat__490723111};
-type Map__605269027<K, V> = Map__158565046<K, V>;
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
-type OldAttendanceRecord__238745332 =
-  {
-    checkIn : Int;
-    checkOut : ?Int;
-    date : Text;
-    id : Text;
-    status : Text;
-    totalHours : ?Float;
-    workerId : Text
-  };
-type OldCompanySettings__703403330 =
-  {
-    latitude : Float;
-    longitude : Float;
-    radius : Float;
-    updatedAt : Int;
-    wifiSsid : ?Text
-  };
-type OldManagerCredentials__318448141 =
-  {keywordHash : Text; pinHash : Text; updatedAt : Int};
-type OldPermissionRequest__186412380 =
-  {
-    createdAt : Int;
-    hours : Float;
-    id : Text;
-    reason : Text;
-    status : Text;
-    workerId : Text
-  };
-type OldWorker__1059177633 =
-  {
-    department : Text;
-    enrolledAt : Int;
-    faceEmbeddings : Blob;
-    id : Text;
-    name : Text;
-    phone : Text
-  };
 type PermissionRequest__280580830 =
   {
     companyId : Text;
@@ -104,13 +62,7 @@ type Worker__185239871 =
     name : Text;
     phone : Text
   };
-actor ({
-  in attendances : Map__605269027<Text, OldAttendanceRecord__238745332>;
-  in companySettings : ?OldCompanySettings__703403330;
-  in managerCredentials : ?OldManagerCredentials__318448141;
-  in permissions : Map__605269027<Text, OldPermissionRequest__186412380>;
-  in workers : Map__605269027<Text, OldWorker__1059177633>
-}, {
+actor {
   stable attendances :
     {
       var root : Node__46230540<Text, AttendanceRecord__699091857>;
@@ -143,4 +95,4 @@ actor ({
       var root : Node__46230540<Text, Worker__185239871>;
       var size : Nat__490723111
     }
-}) ;
+};

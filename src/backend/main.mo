@@ -10,9 +10,9 @@ import SyncMixin "mixins/sync-api";
 import WorkerTypes "types/workers";
 import AttendanceTypes "types/attendance";
 import SettingsTypes "types/settings";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   // --- State (persists via enhanced orthogonal persistence) ---
   let workers       : WorkersLib.WorkerStore        = Map.empty<Text, WorkerTypes.Worker>();

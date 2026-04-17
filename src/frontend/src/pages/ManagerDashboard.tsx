@@ -2625,41 +2625,98 @@ function SettingsSection({
     }
   };
 
+  // Helper: save coordinates to both IndexedDB and backend
+  const saveCoordinates = async (
+    latitude: number,
+    longitude: number,
+  ): Promise<void> => {
+    const companyId = selectedCompany?.id ?? "";
+    const existing = await dbGetSettings(selectedCompany?.id);
+    const radiusVal = existing?.radius ?? 500;
+    const wifiSsid = existing?.wifiSsid ?? null;
+    await dbPutSettings({
+      id: `settings-${companyId}`,
+      companyId,
+      latitude,
+      longitude,
+      radius: radiusVal,
+      wifiSsid: wifiSsid ?? undefined,
+      updatedAt: Date.now(),
+    });
+    setLat(latitude.toString());
+    setLng(longitude.toString());
+    onRefresh();
+    await saveLocationToBackend(
+      latitude,
+      longitude,
+      radiusVal,
+      wifiSsid,
+      companyId,
+    );
+  };
+
   const handleSetCurrentLocation = async () => {
+    setGettingLocation(true);
+
+    // Helper: fallback to field values if they are valid
+    const tryFallbackToFieldValues = async (reason: string): Promise<void> => {
+      const fieldLat = Number.parseFloat(lat);
+      const fieldLng = Number.parseFloat(lng);
+      const fieldValuesValid =
+        !Number.isNaN(fieldLat) &&
+        !Number.isNaN(fieldLng) &&
+        (fieldLat !== 0 || fieldLng !== 0) &&
+        Math.abs(fieldLat) <= 90 &&
+        Math.abs(fieldLng) <= 180;
+
+      if (fieldValuesValid) {
+        try {
+          await saveCoordinates(fieldLat, fieldLng);
+          toast.success(
+            `Location saved using current coordinates (${fieldLat.toFixed(5)}, ${fieldLng.toFixed(5)})`,
+          );
+        } catch {
+          toast.error("Failed to save location.");
+        }
+      } else {
+        console.warn(
+          "[Location] GPS failed:",
+          reason,
+          "— no valid field values to fall back to.",
+        );
+        toast.error(
+          "Please enter valid coordinates manually or allow location access.",
+        );
+      }
+      setGettingLocation(false);
+    };
+
+    // Proactively request permissions if the Permissions API is available (helps Android WebView)
+    if (navigator.permissions) {
+      try {
+        const status = await navigator.permissions.query({
+          name: "geolocation",
+        });
+        if (status.state === "denied") {
+          // Permission already denied — skip GPS and use field values immediately
+          await tryFallbackToFieldValues("permission denied");
+          return;
+        }
+      } catch {
+        // Permissions API not available in this context — proceed anyway
+      }
+    }
+
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.");
+      // No Geolocation API at all (old browser / restricted WebView)
+      await tryFallbackToFieldValues("geolocation API unavailable");
       return;
     }
-    setGettingLocation(true);
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const existing = await dbGetSettings(selectedCompany?.id);
-          const newLat = pos.coords.latitude.toString();
-          const newLng = pos.coords.longitude.toString();
-          const companyId = selectedCompany?.id ?? "";
-          const radiusVal = existing?.radius ?? 500;
-          const wifiSsid = existing?.wifiSsid ?? null;
-          await dbPutSettings({
-            id: `settings-${companyId}`,
-            companyId,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            radius: radiusVal,
-            wifiSsid: wifiSsid ?? undefined,
-            updatedAt: Date.now(),
-          });
-          setLat(newLat);
-          setLng(newLng);
-          onRefresh();
-          // Also sync to backend
-          await saveLocationToBackend(
-            pos.coords.latitude,
-            pos.coords.longitude,
-            radiusVal,
-            wifiSsid,
-            companyId,
-          );
+          await saveCoordinates(pos.coords.latitude, pos.coords.longitude);
           toast.success(
             `Company location set to ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
           );
@@ -2669,15 +2726,17 @@ function SettingsSection({
           setGettingLocation(false);
         }
       },
-      (err) => {
-        setGettingLocation(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          toast.error("Location permission denied. Please allow access.");
-        } else {
-          toast.error("Could not get location. Please try again.");
-        }
+      async (err) => {
+        // GPS failed for ANY reason — immediately try field values before showing any error
+        const reason =
+          err.code === err.PERMISSION_DENIED
+            ? "permission denied"
+            : err.code === err.TIMEOUT
+              ? "timeout"
+              : "position unavailable";
+        await tryFallbackToFieldValues(reason);
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 3000, maximumAge: 60000 },
     );
   };
 
